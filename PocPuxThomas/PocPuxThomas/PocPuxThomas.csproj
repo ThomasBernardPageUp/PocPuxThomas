@@ -16,10 +16,39 @@
     <PackageReference Include="PageUpX.DataAccess" Version="2.1.0" />
     <PackageReference Include="PageUpX.Core" Version="2.1.0" />
     <PackageReference Include="PageUpX.DataAccess.SQLite" Version="2.1.0" />
+    <PackageReference Include="Prism.Core" Version="8.1.97" />
+    <PackageReference Include="Prism.Forms" Version="8.1.97" />
+    <PackageReference Include="Prism.DryIoc.Forms" Version="8.1.97" />
+    <PackageReference Include="Sharpnado.TaskMonitor" Version="1.0.2" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="PageUpX.DataAccess" />
     <None Remove="PageUpX.Core" />
     <None Remove="PageUpX.DataAccess.SQLite" />
+    <None Remove="ViewModels\" />
+    <None Remove="Views\" />
+    <None Remove="Commons\" />
+    <None Remove="Converters\" />
+    <None Remove="Helpers\" />
+    <None Remove="Helpers\Interfaces\" />
+    <None Remove="Repositories\" />
+    <None Remove="Repositories\Interfaces\" />
+    <None Remove="Prism.Core" />
+    <None Remove="Prism.Forms" />
+    <None Remove="Prism.DryIoc.Forms" />
+    <None Remove="Sharpnado.TaskMonitor" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ViewModels\" />
+    <Folder Include="Views\" />
+    <Folder Include="Commons\" />
+    <Folder Include="Converters\" />
+    <Folder Include="Helpers\" />
+    <Folder Include="Helpers\Interfaces\" />
+    <Folder Include="Repositories\" />
+    <Folder Include="Repositories\Interfaces\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PocPuxThomas.Models\PocPuxThomas.Models.csproj" />
   </ItemGroup>
 </Project>
