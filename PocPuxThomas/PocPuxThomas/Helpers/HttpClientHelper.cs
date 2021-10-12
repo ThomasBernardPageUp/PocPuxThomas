@@ -16,8 +16,15 @@ namespace PocPuxThomas.Helpers
 
         public HttpClientHelper()
         {
-            HttpClientHandler handler = new HttpClientHandler();
-            _client = new HttpClient(handler);
+            var httpClientHandler = new HttpClientHandler();
+
+        #if DEBUG
+            httpClientHandler.ServerCertificateCustomValidationCallback =
+                (message, certificate, chain, sslPolicyErrors) => true;
+        #endif
+            _client = new HttpClient(httpClientHandler);
+
+
         }
 
         public HttpClient GetHttpClient()
