@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PocPuxThomas.Views.ProfilePage">
+    <StackLayout Margin="10, 20">
+
+        <Grid Margin="25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="70*"></ColumnDefinition>
+                <ColumnDefinition Width="30*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"></RowDefinition>
+                <RowDefinition Height="40"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <StackLayout Orientation="Horizontal">
+                <Label Text="Username : " VerticalOptions="Center"></Label>
+                <Entry Text="{Binding UserEntity.Username}" HorizontalOptions="FillAndExpand" IsEnabled="False"></Entry>
+            </StackLayout>
+            <StackLayout Grid.Row="1" Orientation="Horizontal">
+                <Label Text="Password : " VerticalOptions="Center"></Label>
+                <Entry Text="{Binding UserEntity.Password}" HorizontalOptions="FillAndExpand" IsEnabled="False"></Entry>
+            </StackLayout>
+
+            <Image Margin="5, 0" Grid.RowSpan="3" Grid.Column="1" Source="{Binding UserEntity.Picture}" BackgroundColor="Black"></Image>
+
+        </Grid>
+
+
+        <Label Text="All saved characters :" FontSize="30" HorizontalOptions="Center"></Label>
+        <CollectionView ItemsSource="{Binding Characters}" Margin="10, 20" x:Name="list">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout Orientation="Horizontal">
+                        <Image Source="{Binding Image}"></Image>
+                        <Label Text="{Binding Name}" VerticalTextAlignment="Center" WidthRequest="150"></Label>
+                        <Button Command="{Binding BindingContext.DeleteCommand, Source={x:Reference list}}" CommandParameter="{Binding .}" HorizontalOptions="EndAndExpand" BackgroundColor="Red" TextColor="White" VerticalOptions="CenterAndExpand" Padding="5" Text="Delete"></Button>
+                        <Button Command="{Binding BindingContext.ViewCommand, Source={x:Reference list}}" CommandParameter="{Binding .}" HorizontalOptions="EndAndExpand" BackgroundColor="Blue" TextColor="White" VerticalOptions="CenterAndExpand" Padding="5" Text="View"></Button>
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </StackLayout>
+</ContentPage>

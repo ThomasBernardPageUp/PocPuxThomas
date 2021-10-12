@@ -11,6 +11,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\Page1.xaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Views\Page1.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />
     <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
     <PackageReference Include="PageUpX.DataAccess" Version="2.1.0" />
@@ -39,16 +47,17 @@
     <None Remove="Sharpnado.TaskMonitor" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ViewModels\" />
-    <Folder Include="Views\" />
     <Folder Include="Commons\" />
     <Folder Include="Converters\" />
     <Folder Include="Helpers\" />
     <Folder Include="Helpers\Interfaces\" />
-    <Folder Include="Repositories\" />
-    <Folder Include="Repositories\Interfaces\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PocPuxThomas.Models\PocPuxThomas.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Views\ProfilePage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

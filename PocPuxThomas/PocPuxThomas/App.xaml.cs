@@ -83,6 +83,8 @@ namespace PocPuxThomas
             try
             {
                 containerRegistry.RegisterSingleton<IPuxSimpleDataAccessor<UserEntity>, PuxSimpleDataAccessorSQLite<UserEntity>>();
+                containerRegistry.RegisterSingleton<IPuxSimpleDataAccessor<CharacterEntity>, PuxSimpleDataAccessorSQLite<CharacterEntity>>();
+
             }
             catch (Exception ex)
             {
@@ -96,6 +98,8 @@ namespace PocPuxThomas
         private void RegisterRepositories(IContainerRegistry containerRegistry)
         {
             containerRegistry.RegisterSingleton<IUserRepository, UserRepository>();
+            containerRegistry.RegisterSingleton<ICharacterRepository, CharacterRepository>();
+
         }
 
         private void RegisterForNavigation(IContainerRegistry containerRegistry)
@@ -111,11 +115,7 @@ namespace PocPuxThomas
             containerRegistry.RegisterForNavigation<AccountPage, AccountViewModel>(Constants.AccountPage);
             containerRegistry.RegisterForNavigation<MenuPage, MenuViewModel>(Constants.MenuPage);
             containerRegistry.RegisterForNavigation<CharacterPage, CharacterViewModel>(Constants.CharacterPage);
-
-
-
-
-
+            containerRegistry.RegisterForNavigation<ProfilePage, ProfileViewModel>(Constants.ProfilePage);
         }
 
 

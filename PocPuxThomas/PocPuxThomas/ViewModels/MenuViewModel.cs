@@ -21,6 +21,7 @@ namespace PocPuxThomas.ViewModels
         public string SelectedGender { get; set; }
         public DelegateCommand<CharacterEntity> CharacterTappedCommand { get; set; }
         public Command SearchCommand { get; set; }
+        public Command ProfileCommand { get; set; }
 
         private IDataTransferHelper _dataTransferHelper;
         private List<CharacterEntity> _allCharacterEntities;
@@ -31,6 +32,7 @@ namespace PocPuxThomas.ViewModels
             _dataTransferHelper = dataTransferHelper;
             SearchCommand = new Command(SearchCharacter);
             CharacterTappedCommand = new DelegateCommand<CharacterEntity>(ShowCharacter);
+            ProfileCommand = new Command(ProfilePage);
         }
 
 
@@ -93,6 +95,11 @@ namespace PocPuxThomas.ViewModels
 
             var parameter = new NavigationParameters { { "character", characterEntity } };
             await NavigationService.NavigateAsync(Constants.CharacterPage, parameter);
+        }
+
+        public async void ProfilePage()
+        {
+            await NavigationService.NavigateAsync(Constants.ProfilePage);
         }
 
         private List<CharacterEntity> _characters;

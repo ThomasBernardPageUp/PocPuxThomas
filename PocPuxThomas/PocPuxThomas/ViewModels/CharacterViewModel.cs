@@ -1,14 +1,23 @@
 ﻿using System;
 using System.Threading.Tasks;
 using PocPuxThomas.Models.Entities;
+using PocPuxThomas.Repositories.Interfaces;
 using Prism.Navigation;
+using Xamarin.Forms;
 
 namespace PocPuxThomas.ViewModels
 {
     public class CharacterViewModel: BaseViewModel
     {
-        public CharacterViewModel(INavigationService navigationService): base(navigationService)
+        public Command SaveCommand { get; set; }
+
+
+        private ICharacterRepository _characterRepository;
+
+        public CharacterViewModel(INavigationService navigationService, ICharacterRepository characterRepository): base(navigationService)
         {
+            _characterRepository = characterRepository;
+            SaveCommand = new Command(SaveCharacter);
         }
 
         protected override async Task OnNavigatedToAsync(INavigationParameters parameters)
@@ -20,6 +29,13 @@ namespace PocPuxThomas.ViewModels
                 Character = parameters.GetValue<CharacterEntity>("character");
             }
 
+        }
+
+        public async void SaveCharacter()
+        {
+            _character.IdCreator = App.ConnectedUser.Id;
+            await _characterRepository.InsertOrReplaceItemAsync(_character);
+            await NavigationService.GoBackAsync();
         }
 
 
