@@ -66,6 +66,7 @@ namespace PocPuxThomas.ViewModels
 
             // Get all differents genders
             AllGenders = new ObservableCollection<string>(_allCharacterEntities.Select(characterEntity => characterEntity.Gender).Distinct().ToList());
+            AllGenders.Insert(0, "All");
             Characters = _allCharacterEntities;
         }
 

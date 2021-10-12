@@ -34,7 +34,7 @@ namespace PocPuxThomas.ViewModels
         {
             if (String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password) )
             {
-                // Error
+                await App.Current.MainPage.DisplayAlert("Error", "Please enter one username and one password", "Ok");
             }
             else
             {
@@ -47,7 +47,7 @@ namespace PocPuxThomas.ViewModels
                 }
                 else
                 {
-                    // Error
+                    await App.Current.MainPage.DisplayAlert("Error", "Username or password incorrect", "Ok");
                     
                 }
             }
@@ -57,7 +57,6 @@ namespace PocPuxThomas.ViewModels
         {
             await NavigationService.NavigateAsync(Constants.AccountPage);
         }
-
 
         private IUserRepository _userRepository;
     }

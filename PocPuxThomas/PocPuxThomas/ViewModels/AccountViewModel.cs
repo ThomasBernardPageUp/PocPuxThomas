@@ -36,7 +36,7 @@ namespace PocPuxThomas.ViewModels
             // If password or username == null
             if(String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password))
             {
-                // Display error
+                await App.Current.MainPage.DisplayAlert("Error", "Enter one usersname and one password", "Ok ");
             }
             else
             {
