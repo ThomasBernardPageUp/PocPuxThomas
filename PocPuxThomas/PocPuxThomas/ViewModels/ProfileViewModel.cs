@@ -37,7 +37,8 @@ namespace PocPuxThomas.ViewModels
 
         public async void DeleteCharacter(CharacterEntity characterEntity)
         {
-            await _characterRepository.DeleteItemAsync(characterEntity);
+            characterEntity.IdCreator = 0;
+            await _characterRepository.UpdateItemAsync(characterEntity);
             Characters.Remove(characterEntity);
         }
 

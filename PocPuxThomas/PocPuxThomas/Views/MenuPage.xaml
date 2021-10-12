@@ -22,7 +22,12 @@
                 <Picker SelectedItem="{Binding SelectedGender}" Title="Choose one sex" HorizontalOptions="FillAndExpand" ItemsSource="{Binding AllGenders}"></Picker>
                 <Button Command="{Binding SearchCommand}" Text="Search" BackgroundColor="DodgerBlue" TextColor="White" Padding="30, 0"></Button>
             </StackLayout>
+
+        <StackLayout Orientation="Horizontal">
             <Label TextDecorations="Underline" Margin="10" Text="{Binding Characters.Count, StringFormat='We found {0} result(s) :'}"></Label>
+            <Button Command="{Binding ResetCharactersCommand}" Text="Reset" BackgroundColor="Red" HorizontalOptions="EndAndExpand"></Button>
+
+        </StackLayout>
 
 
          <CollectionView ItemsSource="{Binding Characters}" Margin="10, 0" x:Name="list">

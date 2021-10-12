@@ -30,6 +30,7 @@
     <PackageReference Include="Sharpnado.TaskMonitor" Version="1.0.2" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove=".DS_Store" />
     <None Remove="PageUpX.DataAccess" />
     <None Remove="PageUpX.Core" />
     <None Remove="PageUpX.DataAccess.SQLite" />

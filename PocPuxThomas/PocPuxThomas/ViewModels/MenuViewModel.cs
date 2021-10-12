@@ -8,9 +8,11 @@ using PocPuxThomas.Commons;
 using PocPuxThomas.Helpers.Interfaces;
 using PocPuxThomas.Models.DTO.Down;
 using PocPuxThomas.Models.Entities;
+using PocPuxThomas.Repositories.Interfaces;
 using Prism.Commands;
 using Prism.Navigation;
 using Xamarin.Forms;
+using System.Linq;
 
 namespace PocPuxThomas.ViewModels
 {
@@ -22,17 +24,21 @@ namespace PocPuxThomas.ViewModels
         public DelegateCommand<CharacterEntity> CharacterTappedCommand { get; set; }
         public Command SearchCommand { get; set; }
         public Command ProfileCommand { get; set; }
+        public Command ResetCharactersCommand { get; set; }
 
         private IDataTransferHelper _dataTransferHelper;
         private List<CharacterEntity> _allCharacterEntities;
+        private ICharacterRepository _characterRepository;
 
 
-        public MenuViewModel(INavigationService navigationService, IDataTransferHelper dataTransferHelper) : base(navigationService)
+        public MenuViewModel(INavigationService navigationService, IDataTransferHelper dataTransferHelper, ICharacterRepository characterRepository) : base(navigationService)
         {
             _dataTransferHelper = dataTransferHelper;
+            _characterRepository = characterRepository;
             SearchCommand = new Command(SearchCharacter);
             CharacterTappedCommand = new DelegateCommand<CharacterEntity>(ShowCharacter);
             ProfileCommand = new Command(ProfilePage);
+            ResetCharactersCommand = new Command(ResetCharacters);
         }
 
 
@@ -43,25 +49,50 @@ namespace PocPuxThomas.ViewModels
             LoadCharacters(); // Load all characters
         }
 
+        public async void ResetCharacters()
+        {
+            bool reply = await App.Current.MainPage.DisplayAlert("Warning", "Do you wan't to delete all characters ?", "Yes", "No");
+
+            if (reply)
+            {
+                await _characterRepository.DropAsync(true);
+                LoadCharacters();
+            }
+
+        }
+
 
         public async void LoadCharacters()
         {
             _allCharacterEntities = new List<CharacterEntity>();
-            string baseUrl = "https://rickandmortyapi.com/api/character?page=";
 
-            // 1 to 34 (number of pages)
-            for (int i = 1; i < 35; i++)
+            var charactersDatabase = await _characterRepository.GetItemsAsync();
+
+            // If characters arealready save in the database
+            if (charactersDatabase.Count() >= 671)
             {
-                var result = await _dataTransferHelper.SendClientAsync<CharactersDownDTO>(baseUrl + i, HttpMethod.Get);
+                _allCharacterEntities = charactersDatabase.ToList();
+            }
+            else
+            {
+                string baseUrl = "https://rickandmortyapi.com/api/character?page=";
 
-                if (result.IsSuccess)
+                // 1 to 34 (number of pages)
+                for (int i = 1; i < 35; i++)
                 {
-                    _allCharacterEntities.AddRange(Converters.CharacterDownToCharacterEntity.ConvertCharacterDownToCharacterEntity(result.Result.Results));
+                    var result = await _dataTransferHelper.SendClientAsync<CharactersDownDTO>(baseUrl + i, HttpMethod.Get);
+
+                    if (result.IsSuccess)
+                    {
+                        _allCharacterEntities.AddRange(Converters.CharacterDownToCharacterEntity.ConvertCharacterDownToCharacterEntity(result.Result.Results));
+                    }
+                    else
+                    {
+                        Console.WriteLine("call error");
+                    }
                 }
-                else
-                {
-                    Console.WriteLine("call error");
-                }
+
+                await _characterRepository.InsertOrReplaceItemsAsync(_allCharacterEntities);
             }
 
             // Get all differents genders
