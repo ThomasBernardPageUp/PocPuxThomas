@@ -50,9 +50,10 @@ namespace PocPuxThomas.ViewModels
             await base.OnNavigatedToAsync(parameters);
 
 
-            // If we come from CharacterViewModel AND we do a navigation.goback()
+            // If we do a navigation.goback()
             if (parameters.GetNavigationMode().Equals(NavigationMode.Back))
             {
+                // If we had a character in parameter
                 if (parameters.ContainsKey("character"))
                 {
                     var editedCharacter = parameters.GetValue<CharacterEntity>("character");
@@ -62,7 +63,7 @@ namespace PocPuxThomas.ViewModels
                     Characters.Insert(index, editedCharacter);
                 }
             }
-            else // If we come from any other page
+            else // If we come from a NavigateTo
             {
                 LoadCharacters(); // Load all characters
             }
