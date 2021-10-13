@@ -148,11 +148,34 @@ namespace PocPuxThomas.ViewModels
             await NavigationService.NavigateAsync(Constants.ProfilePage);
         }
 
+        public async void ChangeSort()
+        {
+            List<CharacterEntity> characterSorted = new List<CharacterEntity>();
+
+            switch (SelectedSort)
+            {
+                case "Any":
+                    characterSorted = Characters.OrderBy(character => character.Id).ToList();
+                    break;
+                case "Gender":
+                    characterSorted = Characters.OrderBy(character => character.Gender).ToList();
+                    break;
+                case "Name":
+                    characterSorted = Characters.OrderBy(character => character.Name).ToList();
+                    break;
+                case "Origin":
+                    characterSorted = Characters.OrderBy(character => character.Origin).ToList();
+                    break;
+            }
+
+            Characters = new ObservableCollection<CharacterEntity>(characterSorted);
+        }
+
         private string _selectedSort;
         public string SelectedSort
         {
             get { return _selectedSort; }
-            set { SetProperty(ref _selectedSort, value); }
+            set { SetProperty(ref _selectedSort, value); ChangeSort(); }
         }
 
         private List<string> _allSorts;

@@ -46,6 +46,9 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <Picker ItemsSource="{Binding AllSorts}" SelectedItem="{Binding SelectedSort}" ></Picker>
+        <StackLayout Orientation="Horizontal">
+            <Label Text="Sort by : " VerticalOptions="Center"></Label>
+            <Picker ItemsSource="{Binding AllSorts}" SelectedItem="{Binding SelectedSort}" HorizontalOptions="FillAndExpand"></Picker>
+        </StackLayout>
     </StackLayout>
 </ContentPage>
