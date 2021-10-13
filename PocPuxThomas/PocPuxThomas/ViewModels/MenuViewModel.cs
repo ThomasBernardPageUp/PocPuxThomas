@@ -12,13 +12,12 @@ using PocPuxThomas.Repositories.Interfaces;
 using Prism.Commands;
 using Prism.Navigation;
 using Xamarin.Forms;
-using System.Linq;
 
 namespace PocPuxThomas.ViewModels
 {
     public class MenuViewModel:BaseViewModel
     {
-            
+
         public string SearchedCharacterName { get; set; }
         public string SelectedGender { get; set; }
         public DelegateCommand<CharacterEntity> CharacterTappedCommand { get; set; }
@@ -41,6 +40,8 @@ namespace PocPuxThomas.ViewModels
             ProfileCommand = new Command(ProfilePage);
             ResetCharactersCommand = new Command(ResetCharacters);
             DeleteCharacterCommand = new DelegateCommand<CharacterEntity>(DeleteCharacter);
+
+            AllSorts = new List<string>() {"Any", "Gender", "Name", "Origin" };
         }
 
 
@@ -80,12 +81,12 @@ namespace PocPuxThomas.ViewModels
         {
             _allCharacterEntities = new List<CharacterEntity>();
 
-            var charactersDatabase = await _characterRepository.GetItemsAsync();
+            var charactersFromDatabase = await _characterRepository.GetItemsAsync();
 
             // If characters are already save in the database
-            if (charactersDatabase.Any())
+            if (charactersFromDatabase?.Any() ?? false)
             {
-                _allCharacterEntities = charactersDatabase.ToList();
+                _allCharacterEntities = charactersFromDatabase.ToList();
             }
             else
             {
@@ -138,7 +139,6 @@ namespace PocPuxThomas.ViewModels
 
         public async void ShowCharacter(CharacterEntity characterEntity)
         {
-
             var parameter = new NavigationParameters { { "character", characterEntity } };
             await NavigationService.NavigateAsync(Constants.CharacterPage, parameter);
         }
@@ -146,6 +146,20 @@ namespace PocPuxThomas.ViewModels
         public async void ProfilePage()
         {
             await NavigationService.NavigateAsync(Constants.ProfilePage);
+        }
+
+        private string _selectedSort;
+        public string SelectedSort
+        {
+            get { return _selectedSort; }
+            set { SetProperty(ref _selectedSort, value); }
+        }
+
+        private List<string> _allSorts;
+        public List<string> AllSorts
+        {
+            get { return _allSorts; }
+            set { SetProperty(ref _allSorts, value); }
         }
 
         private ObservableCollection<CharacterEntity> _characters;
