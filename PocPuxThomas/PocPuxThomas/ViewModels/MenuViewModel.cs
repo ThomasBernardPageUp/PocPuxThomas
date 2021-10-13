@@ -56,8 +56,9 @@ namespace PocPuxThomas.ViewModels
         {
             if(await App.Current.MainPage.DisplayAlert("Warning", "Do you want delete this character ?", "Yes", "No"))
             {
-                await _characterRepository.DeleteItemAsync(characterEntity);
-                Characters.Remove(characterEntity);
+                await _characterRepository.DeleteItemAsync(characterEntity); // Delete it in the dataBase
+                Characters.Remove(characterEntity); // Delete it in the current list of characters
+                _allCharacterEntities.Remove(characterEntity); // Delete it in the list of all characters
             }
 
         }
