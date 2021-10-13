@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using PocPuxThomas.Models.Entities;
 using PocPuxThomas.Repositories.Interfaces;
+using PocPuxThomas.Wrappers;
 using Prism.Navigation;
 using Xamarin.Forms;
 
@@ -26,7 +27,7 @@ namespace PocPuxThomas.ViewModels
 
             if (parameters.ContainsKey("character"))
             {
-                Character = parameters.GetValue<CharacterEntity>("character");
+                Character = parameters.GetValue<CharacterWrapper>("character");
             }
 
         }
@@ -34,17 +35,17 @@ namespace PocPuxThomas.ViewModels
         public async void SaveCharacter()
         {
             _character.IdCreator = App.ConnectedUser.Id;
-            await _characterRepository.InsertOrReplaceItemAsync(_character);
+            await _characterRepository.InsertOrReplaceItemAsync(new CharacterEntity(_character));
 
             // We add the edited character in parameter
-            var parameter = new NavigationParameters { { "character", Character } };
+            var parameter = new NavigationParameters { { "characterId", Character.Id } };
             // We go back with the character
             await NavigationService.GoBackAsync(parameter);
         }
 
 
-        private CharacterEntity _character;
-        public CharacterEntity Character
+        private CharacterWrapper _character;
+        public CharacterWrapper Character
         {
             get { return _character; }
             set { SetProperty(ref _character, value); }

@@ -9,6 +9,7 @@ using PocPuxThomas.Helpers.Interfaces;
 using PocPuxThomas.Models.DTO.Down;
 using PocPuxThomas.Models.Entities;
 using PocPuxThomas.Repositories.Interfaces;
+using PocPuxThomas.Wrappers;
 using Prism.Commands;
 using Prism.Navigation;
 using Xamarin.Forms;
@@ -20,11 +21,11 @@ namespace PocPuxThomas.ViewModels
 
         public string SearchedCharacterName { get; set; }
         public string SelectedGender { get; set; }
-        public DelegateCommand<CharacterEntity> CharacterTappedCommand { get; set; }
+        public DelegateCommand<CharacterWrapper> CharacterTappedCommand { get; set; }
         public Command SearchCommand { get; set; }
         public Command ProfileCommand { get; set; }
         public Command ResetCharactersCommand { get; set; }
-        public DelegateCommand<CharacterEntity> DeleteCharacterCommand { get; set; }
+        public DelegateCommand<CharacterWrapper> DeleteCharacterCommand { get; set; }
 
         private IDataTransferHelper _dataTransferHelper;
         private List<CharacterEntity> _allCharacterEntities;
@@ -36,10 +37,10 @@ namespace PocPuxThomas.ViewModels
             _dataTransferHelper = dataTransferHelper;
             _characterRepository = characterRepository;
             SearchCommand = new Command(SearchCharacter);
-            CharacterTappedCommand = new DelegateCommand<CharacterEntity>(ShowCharacter);
+            CharacterTappedCommand = new DelegateCommand<CharacterWrapper>(ShowCharacter);
             ProfileCommand = new Command(ProfilePage);
             ResetCharactersCommand = new Command(ResetCharacters);
-            DeleteCharacterCommand = new DelegateCommand<CharacterEntity>(DeleteCharacter);
+            DeleteCharacterCommand = new DelegateCommand<CharacterWrapper>(DeleteCharacter);
 
             AllSorts = new List<string>() {"Any", "Gender", "Name", "Origin" };
         }
@@ -54,13 +55,13 @@ namespace PocPuxThomas.ViewModels
             if (parameters.GetNavigationMode().Equals(NavigationMode.Back))
             {
                 // If we had a character in parameter
-                if (parameters.ContainsKey("character"))
+                if (parameters.ContainsKey("characterId"))
                 {
-                    var editedCharacter = parameters.GetValue<CharacterEntity>("character");
+                    int editedCharacterId = parameters.GetValue<int>("characterId");
 
-                    int index = Characters.IndexOf(editedCharacter);
-                    Characters.Remove(editedCharacter);
-                    Characters.Insert(index, editedCharacter);
+                    CharacterWrapper oldCharacter = Characters.FirstOrDefault(character => character.Id == editedCharacterId);
+                    var editedCharacted = await _characterRepository.GetItemAsync(editedCharacterId);
+                    oldCharacter.Name = editedCharacted.Name;
                 }
             }
             else // If we come from a NavigateTo
@@ -71,15 +72,14 @@ namespace PocPuxThomas.ViewModels
         }
 
 
-        public async void DeleteCharacter(CharacterEntity characterEntity)
+        public async void DeleteCharacter(CharacterWrapper characterWrapper)
         {
             if(await App.Current.MainPage.DisplayAlert("Warning", "Do you want delete this character ?", "Yes", "No"))
             {
-                await _characterRepository.DeleteItemAsync(characterEntity); // Delete it in the dataBase
-                Characters.Remove(characterEntity); // Delete it in the current list of characters
-                _allCharacterEntities.Remove(characterEntity); // Delete it in the list of all characters
+                await _characterRepository.DeleteItemAsync(new CharacterEntity(characterWrapper)); // Delete it in the dataBase
+                Characters.Remove(characterWrapper); // Delete it in the current list of characters
+                _allCharacterEntities.Remove(new CharacterEntity(characterWrapper)); // Delete it in the list of all characters
             }
-
         }
 
         public async void ResetCharacters()
@@ -131,33 +131,33 @@ namespace PocPuxThomas.ViewModels
             // Get all differents genders
             AllGenders = new ObservableCollection<string>(_allCharacterEntities.Select(characterEntity => characterEntity.Gender).Distinct().ToList());
             AllGenders.Insert(0, "All");
-            Characters = new ObservableCollection<CharacterEntity>(_allCharacterEntities);
+            Characters = new ObservableCollection<CharacterWrapper>(_allCharacterEntities.Select(characterEntity => new CharacterWrapper(characterEntity)));
         }
 
         public async void SearchCharacter()
         {
             // 1) Reset the list
-            Characters = new ObservableCollection<CharacterEntity>(_allCharacterEntities);
+            Characters = new ObservableCollection<CharacterWrapper>(_allCharacterEntities.Select(characterEntity => new CharacterWrapper(characterEntity)));
 
 
             // 2) We filter with the name
             if (!string.IsNullOrEmpty(SearchedCharacterName))
             {
-                Characters = new ObservableCollection<CharacterEntity>(Characters.Where(character => character.Name.Contains(SearchedCharacterName)).ToList());
+                Characters = new ObservableCollection<CharacterWrapper>(Characters.Where(character => character.Name.Contains(SearchedCharacterName)).ToList());
             }
 
 
             // We filter with the gender
             if (!string.IsNullOrEmpty(SelectedGender) && SelectedGender != "All")
             {
-                Characters = new ObservableCollection<CharacterEntity>(Characters.Where(character => character.Gender.Contains(SelectedGender)).ToList());
+                Characters = new ObservableCollection<CharacterWrapper>(Characters.Where(character => character.Gender.Contains(SelectedGender)).ToList());
             }
         }
 
 
-        public async void ShowCharacter(CharacterEntity characterEntity)
+        public async void ShowCharacter(CharacterWrapper characterWrapper)
         {
-            var parameter = new NavigationParameters { { "character", characterEntity } };
+            var parameter = new NavigationParameters { { "character", characterWrapper } };
             await NavigationService.NavigateAsync(Constants.CharacterPage, parameter);
         }
 
@@ -168,7 +168,7 @@ namespace PocPuxThomas.ViewModels
 
         public async void ChangeSort()
         {
-            List<CharacterEntity> characterSorted = new List<CharacterEntity>();
+            List<CharacterWrapper> characterSorted = new List<CharacterWrapper>();
 
             switch (SelectedSort)
             {
@@ -186,7 +186,7 @@ namespace PocPuxThomas.ViewModels
                     break;
             }
 
-            Characters = new ObservableCollection<CharacterEntity>(characterSorted);
+            Characters = new ObservableCollection<CharacterWrapper>(characterSorted);
         }
 
         private string _selectedSort;
@@ -203,8 +203,8 @@ namespace PocPuxThomas.ViewModels
             set { SetProperty(ref _allSorts, value); }
         }
 
-        private ObservableCollection<CharacterEntity> _characters;
-        public ObservableCollection<CharacterEntity> Characters
+        private ObservableCollection<CharacterWrapper> _characters;
+        public ObservableCollection<CharacterWrapper> Characters
         {   
             get { return _characters; }
             set { SetProperty(ref _characters, value); }
