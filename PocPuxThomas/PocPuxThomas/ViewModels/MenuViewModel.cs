@@ -37,11 +37,11 @@ namespace PocPuxThomas.ViewModels
         {
             _dataTransferHelper = dataTransferHelper;
             _characterRepository = characterRepository;
-            SearchCommand = new Command(SearchCharacter);
-            CharacterTappedCommand = new DelegateCommand<CharacterWrapper>(ShowCharacter);
-            ProfileCommand = new Command(ProfilePage);
-            ResetCharactersCommand = new Command(ResetCharacters);
-            DeleteCharacterCommand = new DelegateCommand<CharacterWrapper>(DeleteCharacter);
+            SearchCommand = new Command(async () => await SearchCharacter());
+            CharacterTappedCommand = new DelegateCommand<CharacterWrapper>(async (characterWrapper) => await ShowCharacter(characterWrapper));
+            ProfileCommand = new Command(async () => await ProfilePage());
+            ResetCharactersCommand = new Command(async () => await ResetCharacters());
+            DeleteCharacterCommand = new DelegateCommand<CharacterWrapper>(async (characterWrapper) => await DeleteCharacter(characterWrapper));
 
             AllSorts = new List<string>() {"Any", "Gender", "Name", "Origin" };
         }
@@ -71,12 +71,12 @@ namespace PocPuxThomas.ViewModels
             }
             else // If we come from a NavigateTo
             {
-                new Thread(LoadCharacters).Start(); // Load all characters
+                await LoadCharacters(); // Load all characters
             }
         }
 
 
-        public async void DeleteCharacter(CharacterWrapper characterWrapper)
+        public async Task DeleteCharacter(CharacterWrapper characterWrapper)
         {
             if(await App.Current.MainPage.DisplayAlert("Warning", "Do you want delete this character ?", "Yes", "No"))
             {
@@ -86,20 +86,20 @@ namespace PocPuxThomas.ViewModels
             }
         }
 
-        public async void ResetCharacters()
+        public async Task ResetCharacters()
         {
             bool reply = await App.Current.MainPage.DisplayAlert("Warning", "Do you wan't to delete all characters ?", "Yes", "No");
 
             if (reply)
             {
                 await _characterRepository.DropAsync(true);
-                LoadCharacters();
+                await LoadCharacters();
             }
 
         }
 
 
-        public async void LoadCharacters()
+        public async Task LoadCharacters()
         {
             _allCharacterEntities = new List<CharacterEntity>();
 
@@ -138,7 +138,7 @@ namespace PocPuxThomas.ViewModels
             Characters = new ObservableCollection<CharacterWrapper>(_allCharacterEntities.Select(characterEntity => new CharacterWrapper(characterEntity)));
         }
 
-        public async void SearchCharacter()
+        public async Task SearchCharacter()
         {
             // 1) Reset the list
             Characters = new ObservableCollection<CharacterWrapper>(_allCharacterEntities.Select(characterEntity => new CharacterWrapper(characterEntity)));
@@ -159,18 +159,18 @@ namespace PocPuxThomas.ViewModels
         }
 
 
-        public async void ShowCharacter(CharacterWrapper characterWrapper)
+        public async Task ShowCharacter(CharacterWrapper characterWrapper)
         {
             var parameter = new NavigationParameters { { "character", characterWrapper } };
             await NavigationService.NavigateAsync(Constants.CharacterPage, parameter);
         }
 
-        public async void ProfilePage()
+        public async Task ProfilePage()
         {
             await NavigationService.NavigateAsync(Constants.ProfilePage);
         }
 
-        public async void ChangeSort()
+        public async Task ChangeSort()
         {
             List<CharacterWrapper> characterSorted = new List<CharacterWrapper>();
 

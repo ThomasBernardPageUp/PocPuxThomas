@@ -19,8 +19,8 @@ namespace PocPuxThomas.ViewModels
 
         public LoginViewModel(INavigationService navigationService, IUserRepository userRepository) :base(navigationService)
         {
-            LoginCommand = new Command(CheckLogin);
-            CreateAccountCommand = new Command(AccountPage);
+            LoginCommand = new Command( async () => await CheckLogin());
+            CreateAccountCommand = new Command(async () => await AccountPage());
             _userRepository = userRepository;
         }
 
@@ -30,7 +30,7 @@ namespace PocPuxThomas.ViewModels
         }
 
 
-        public async void CheckLogin()
+        public async Task CheckLogin()
         {
             if (String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password) )
             {
@@ -53,7 +53,7 @@ namespace PocPuxThomas.ViewModels
             }
         }
 
-        public async void AccountPage()
+        public async Task AccountPage()
         {
             await NavigationService.NavigateAsync(Constants.AccountPage);
         }

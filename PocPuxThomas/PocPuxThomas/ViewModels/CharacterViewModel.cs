@@ -19,7 +19,7 @@ namespace PocPuxThomas.ViewModels
         public CharacterViewModel(INavigationService navigationService, ICharacterRepository characterRepository): base(navigationService)
         {
             _characterRepository = characterRepository;
-            SaveCommand = new Command(SaveCharacter);
+            SaveCommand = new Command(async () => await SaveCharacter());
         }
 
         protected override async Task OnNavigatedToAsync(INavigationParameters parameters)
@@ -33,7 +33,7 @@ namespace PocPuxThomas.ViewModels
 
         }
 
-        public async void SaveCharacter()
+        public async Task SaveCharacter()
         {
             _character.IdCreator = App.ConnectedUser.Id;
             await _characterRepository.InsertOrReplaceItemAsync(new CharacterEntity(_character));

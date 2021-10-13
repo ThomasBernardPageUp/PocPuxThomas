@@ -22,8 +22,8 @@ namespace PocPuxThomas.ViewModels
         ProfileViewModel(INavigationService navigationService, ICharacterRepository characterRepository):base(navigationService)
         {
             _characterRepository = characterRepository;
-            DeleteCommand = new DelegateCommand<CharacterEntity>(DeleteCharacter);
-            ViewCommand = new DelegateCommand<CharacterEntity>(ViewCharacter);
+            DeleteCommand = new DelegateCommand<CharacterEntity>(async (characterEntity) => await DeleteCharacter(characterEntity));
+            ViewCommand = new DelegateCommand<CharacterEntity>(async (characterEntity) => await ViewCharacter(characterEntity));
         }
 
 
@@ -35,14 +35,14 @@ namespace PocPuxThomas.ViewModels
             Characters = new ObservableCollection<CharacterEntity>(await _characterRepository.GetItemsAsync( (characterEntity) => characterEntity.IdCreator == App.ConnectedUser.Id ));
         }
 
-        public async void DeleteCharacter(CharacterEntity characterEntity)
+        public async Task DeleteCharacter(CharacterEntity characterEntity)
         {
             characterEntity.IdCreator = 0;
             await _characterRepository.UpdateItemAsync(characterEntity);
             Characters.Remove(characterEntity);
         }
 
-        public async void ViewCharacter(CharacterEntity characterEntity)
+        public async Task ViewCharacter(CharacterEntity characterEntity)
         {
             var parameter = new NavigationParameters { { "character", characterEntity } };
             await NavigationService.NavigateAsync(Constants.CharacterPage, parameter);

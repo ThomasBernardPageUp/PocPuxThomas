@@ -21,7 +21,7 @@ namespace PocPuxThomas.ViewModels
 
         public AccountViewModel(INavigationService navigationService, IUserRepository userRepository) : base(navigationService)
         {
-            CreateCommand = new Command(CreateAccount);
+            CreateCommand = new Command(async () => await CreateAccount());
             _userRepository = userRepository;
         }
 
@@ -31,7 +31,7 @@ namespace PocPuxThomas.ViewModels
         }
 
 
-        public async void CreateAccount()
+        public async Task CreateAccount()
         {
             // If password or username == null
             if(String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password))
