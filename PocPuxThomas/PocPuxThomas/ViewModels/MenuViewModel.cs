@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using PocPuxThomas.Commons;
 using PocPuxThomas.Helpers.Interfaces;
@@ -59,16 +60,19 @@ namespace PocPuxThomas.ViewModels
                 {
                     int editedCharacterId = parameters.GetValue<int>("characterId");
 
-                    CharacterWrapper oldCharacter = Characters.FirstOrDefault(character => character.Id == editedCharacterId);
-                    var editedCharacted = await _characterRepository.GetItemAsync(editedCharacterId);
-                    oldCharacter.Name = editedCharacted.Name;
+                    CharacterEntity editedCharacter = await _characterRepository.GetItemAsync(editedCharacterId);
+                    Characters.FirstOrDefault(character => character.Id == editedCharacterId).Name = editedCharacter.Name; // Replace the name
+
+                    int index = _allCharacterEntities.IndexOf(_allCharacterEntities.FirstOrDefault(character => character.Id == editedCharacterId));
+                    _allCharacterEntities.RemoveAt(index);
+                    _allCharacterEntities.Insert(index, editedCharacter);
+
                 }
             }
             else // If we come from a NavigateTo
             {
-                LoadCharacters(); // Load all characters
+                new Thread(LoadCharacters).Start(); // Load all characters
             }
-
         }
 
 
