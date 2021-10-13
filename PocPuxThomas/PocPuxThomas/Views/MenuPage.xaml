@@ -37,6 +37,7 @@
 
                        <Image Source="{Binding Image}"></Image>
                        <Label Text="{Binding Name}" VerticalTextAlignment="Center"></Label>
+                        <Button Command="{Binding BindingContext.DeleteCharacterCommand, Source={x:Reference list}}" CommandParameter="{Binding .}" BackgroundColor="Red" Text="Delete" HorizontalOptions="EndAndExpand" VerticalOptions="Center" Margin="10"></Button>
 
                         <StackLayout.GestureRecognizers>
                            <TapGestureRecognizer Command="{Binding BindingContext.CharacterTappedCommand, Source={x:Reference list}}" CommandParameter="{Binding .}"  />

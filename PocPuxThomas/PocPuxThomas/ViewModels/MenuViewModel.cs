@@ -25,6 +25,7 @@ namespace PocPuxThomas.ViewModels
         public Command SearchCommand { get; set; }
         public Command ProfileCommand { get; set; }
         public Command ResetCharactersCommand { get; set; }
+        public DelegateCommand<CharacterEntity> DeleteCharacterCommand { get; set; }
 
         private IDataTransferHelper _dataTransferHelper;
         private List<CharacterEntity> _allCharacterEntities;
@@ -39,6 +40,7 @@ namespace PocPuxThomas.ViewModels
             CharacterTappedCommand = new DelegateCommand<CharacterEntity>(ShowCharacter);
             ProfileCommand = new Command(ProfilePage);
             ResetCharactersCommand = new Command(ResetCharacters);
+            DeleteCharacterCommand = new DelegateCommand<CharacterEntity>(DeleteCharacter);
         }
 
 
@@ -47,6 +49,17 @@ namespace PocPuxThomas.ViewModels
             await base.OnNavigatedToAsync(parameters);
 
             LoadCharacters(); // Load all characters
+        }
+
+
+        public async void DeleteCharacter(CharacterEntity characterEntity)
+        {
+            if(await App.Current.MainPage.DisplayAlert("Warning", "Do you want delete this character ?", "Yes", "No"))
+            {
+                await _characterRepository.DeleteItemAsync(characterEntity);
+                Characters.Remove(characterEntity);
+            }
+
         }
 
         public async void ResetCharacters()
@@ -68,8 +81,8 @@ namespace PocPuxThomas.ViewModels
 
             var charactersDatabase = await _characterRepository.GetItemsAsync();
 
-            // If characters arealready save in the database
-            if (charactersDatabase.Count() >= 671)
+            // If characters are already save in the database
+            if (charactersDatabase.Any())
             {
                 _allCharacterEntities = charactersDatabase.ToList();
             }
@@ -98,26 +111,26 @@ namespace PocPuxThomas.ViewModels
             // Get all differents genders
             AllGenders = new ObservableCollection<string>(_allCharacterEntities.Select(characterEntity => characterEntity.Gender).Distinct().ToList());
             AllGenders.Insert(0, "All");
-            Characters = _allCharacterEntities;
+            Characters = new ObservableCollection<CharacterEntity>(_allCharacterEntities);
         }
 
         public async void SearchCharacter()
         {
             // 1) Reset the list
-            Characters = _allCharacterEntities;
+            Characters = new ObservableCollection<CharacterEntity>(_allCharacterEntities);
 
 
             // 2) We filter with the name
             if (!string.IsNullOrEmpty(SearchedCharacterName))
             {
-                Characters = Characters.Where(character => character.Name.Contains(SearchedCharacterName)).ToList();
+                Characters = new ObservableCollection<CharacterEntity>(Characters.Where(character => character.Name.Contains(SearchedCharacterName)).ToList());
             }
 
 
             // We filter with the gender
             if (!string.IsNullOrEmpty(SelectedGender) && SelectedGender != "All")
             {
-                Characters = Characters.Where(character => character.Gender.Contains(SelectedGender)).ToList();
+                Characters = new ObservableCollection<CharacterEntity>(Characters.Where(character => character.Gender.Contains(SelectedGender)).ToList());
             }
         }
 
@@ -134,8 +147,8 @@ namespace PocPuxThomas.ViewModels
             await NavigationService.NavigateAsync(Constants.ProfilePage);
         }
 
-        private List<CharacterEntity> _characters;
-        public List<CharacterEntity> Characters
+        private ObservableCollection<CharacterEntity> _characters;
+        public ObservableCollection<CharacterEntity> Characters
         {   
             get { return _characters; }
             set { SetProperty(ref _characters, value); }
