@@ -35,7 +35,11 @@ namespace PocPuxThomas.ViewModels
         {
             _character.IdCreator = App.ConnectedUser.Id;
             await _characterRepository.InsertOrReplaceItemAsync(_character);
-            await NavigationService.GoBackAsync();
+
+            // We add the edited character in parameter
+            var parameter = new NavigationParameters { { "character", Character } };
+            // We go back with the character
+            await NavigationService.GoBackAsync(parameter);
         }
 
 
