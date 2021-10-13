@@ -78,7 +78,7 @@ namespace PocPuxThomas.ViewModels
             {
                 await _characterRepository.DeleteItemAsync(new CharacterEntity(characterWrapper)); // Delete it in the dataBase
                 Characters.Remove(characterWrapper); // Delete it in the current list of characters
-                _allCharacterEntities.Remove(new CharacterEntity(characterWrapper)); // Delete it in the list of all characters
+                _allCharacterEntities.Remove(_allCharacterEntities.FirstOrDefault(character => character.Id == characterWrapper.Id)); // Delete it in the list of all characters
             }
         }
 
