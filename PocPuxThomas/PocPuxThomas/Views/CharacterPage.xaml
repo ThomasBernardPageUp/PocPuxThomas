@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="PocPuxThomas.Views.CharacterPage">
+       <StackLayout>
+        <StackLayout BackgroundColor="#F5F5F5" HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand">
+            <Image Source="{Binding Character.Image}"></Image>
+            <StackLayout Orientation="Horizontal">
+                <Label Text="Name :"></Label>
+                <Entry WidthRequest="200" Text="{Binding Character.Name}"></Entry>
+            </StackLayout>
+            <StackLayout Orientation="Horizontal">
+                <Label Text="Species :"></Label>
+                <Entry WidthRequest="200" Text="{Binding Character.Species}"></Entry>
+            </StackLayout>
+            <StackLayout Orientation="Horizontal">
+                <Label Text="Origin :"></Label>
+                <Entry WidthRequest="200" Text="{Binding Character.Origin}"></Entry>
+            </StackLayout>
+            <Button Command="{Binding SaveCommand}" BackgroundColor="Blue" TextColor="White" Text="Save"></Button>
+        </StackLayout>
+    </StackLayout>
+</ContentPage>

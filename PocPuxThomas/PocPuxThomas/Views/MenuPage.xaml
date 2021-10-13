@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:converters="clr-namespace:PocPuxThomas.Converters"
+    x:Class="PocPuxThomas.Views.MenuPage">
+
+     <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:SexToColorConverter x:Key="SexToColorConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+
+        <StackLayout Margin="10">
+        <Label Margin="0,20" FontSize="30" Text="Rick and Morty character's" HorizontalTextAlignment="Center"></Label>
+        <Button Command="{Binding ProfileCommand}" Text="Access to my profile" BackgroundColor="DodgerBlue" TextColor="White"></Button>
+
+
+
+        <SearchBar Text="{Binding SearchedCharacterName}" SearchCommand="{Binding SearchCommand}" Placeholder="Search one character"></SearchBar>
+            <StackLayout Orientation="Horizontal" BackgroundColor="AliceBlue">
+                <Picker SelectedItem="{Binding SelectedGender}" Title="Choose one sex" HorizontalOptions="FillAndExpand" ItemsSource="{Binding AllGenders}"></Picker>
+                <Button Command="{Binding SearchCommand}" Text="Search" BackgroundColor="DodgerBlue" TextColor="White" Padding="30, 0"></Button>
+            </StackLayout>
+
+        <StackLayout Orientation="Horizontal">
+            <Label TextDecorations="Underline" Margin="10" Text="{Binding Characters.Count, StringFormat='We found {0} result(s) :'}"></Label>
+            <Button Command="{Binding ResetCharactersCommand}" Text="Reset" BackgroundColor="Red" HorizontalOptions="EndAndExpand"></Button>
+
+        </StackLayout>
+
+
+         <CollectionView ItemsSource="{Binding Characters}" Margin="10, 0" x:Name="list">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout Orientation="Horizontal" BackgroundColor="{Binding Gender, Converter={x:StaticResource Key=SexToColorConverter}}">
+
+                       <Image Source="{Binding Image}"></Image>
+                       <Label Text="{Binding Name}" VerticalTextAlignment="Center"></Label>
+                        <Button Command="{Binding BindingContext.DeleteCharacterCommand, Source={x:Reference list}}" CommandParameter="{Binding .}" BackgroundColor="Red" Text="Delete" HorizontalOptions="EndAndExpand" VerticalOptions="Center" Margin="10"></Button>
+
+                        <StackLayout.GestureRecognizers>
+                           <TapGestureRecognizer Command="{Binding BindingContext.CharacterTappedCommand, Source={x:Reference list}}" CommandParameter="{Binding .}"  />
+                        </StackLayout.GestureRecognizers>
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <StackLayout Orientation="Horizontal">
+            <Label Text="Sort by : " VerticalOptions="Center"></Label>
+            <Picker ItemsSource="{Binding AllSorts}" SelectedItem="{Binding SelectedSort}" HorizontalOptions="FillAndExpand"></Picker>
+        </StackLayout>
+    </StackLayout>
+</ContentPage>

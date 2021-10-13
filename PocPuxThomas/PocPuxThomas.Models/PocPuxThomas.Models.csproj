@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Business\" />
+    <None Remove="Entities\" />
+    <None Remove="Entities\Interfaces\" />
+    <None Remove="PageUpX.DataAccess" />
+    <None Remove="PageUpX.DataAccess.SQLite" />
+    <None Remove="DTO\" />
+    <None Remove="DTO\Down\" />
+    <None Remove="Newtonsoft.Json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Business\" />
+    <Folder Include="Entities\" />
+    <Folder Include="Entities\Interfaces\" />
+    <Folder Include="DTO\" />
+    <Folder Include="DTO\Down\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="PageUpX.DataAccess" Version="2.1.0" />
+    <PackageReference Include="PageUpX.DataAccess.SQLite" Version="1.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+</Project>

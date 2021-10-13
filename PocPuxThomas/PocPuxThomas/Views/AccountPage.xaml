@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="PocPuxThomas.Views.AccountPage">
+    <StackLayout Margin="20">
+        <StackLayout Orientation="Horizontal">
+            <Label Text="Username : " VerticalOptions="Center"></Label>
+            <Entry Placeholder="Username" Text="{Binding Username}" HorizontalOptions="FillAndExpand"></Entry>
+        </StackLayout>
+        <StackLayout Orientation="Horizontal">
+            <Label Text="Password : " VerticalOptions="Center"></Label>
+            <Entry Placeholder="Password" Text="{Binding Password}" HorizontalOptions="FillAndExpand"></Entry>
+        </StackLayout>
+        <StackLayout Orientation="Horizontal">
+            <Label Text="Picture url : " VerticalOptions="Center"></Label>
+            <Entry WidthRequest="200" Placeholder="Picture" Text="{Binding PictureUrl}" HorizontalOptions="FillAndExpand"></Entry>
+        </StackLayout>
+            <Button Text="Take Picture" Command="{Binding PictureCommand}" HorizontalOptions="Fill" BackgroundColor="Red" TextColor="White"></Button>
+            <Button Text="From files" Command="{Binding FileCommand}" HorizontalOptions="Fill" BackgroundColor="Green" TextColor="White"></Button>
+
+            <Image WidthRequest="200" HeightRequest="200" Source="{Binding PictureUrl}"></Image>
+            
+        
+
+        <Button Text="Create a new account" Command="{Binding CreateCommand}" BackgroundColor="DodgerBlue" TextColor="White"></Button>
+    </StackLayout>
+</ContentPage>
