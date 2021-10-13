@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using PocPuxThomas.Models.Entities;
+using PocPuxThomas.Models.Entities.Interfaces;
 using PocPuxThomas.Repositories.Interfaces;
 using PocPuxThomas.Wrappers;
 using Prism.Navigation;
@@ -27,7 +28,7 @@ namespace PocPuxThomas.ViewModels
 
             if (parameters.ContainsKey("character"))
             {
-                Character = parameters.GetValue<CharacterWrapper>("character");
+                Character = new CharacterEntity(parameters.GetValue<ICharacterEntity>("character"));
             }
 
         }
@@ -44,8 +45,8 @@ namespace PocPuxThomas.ViewModels
         }
 
 
-        private CharacterWrapper _character;
-        public CharacterWrapper Character
+        private CharacterEntity _character;
+        public CharacterEntity Character
         {
             get { return _character; }
             set { SetProperty(ref _character, value); }
