@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Prism.Commands;
 using PocPuxThomas.Commons;
+using ReactiveUI;
 
 namespace PocPuxThomas.ViewModels
 {
@@ -52,7 +53,7 @@ namespace PocPuxThomas.ViewModels
         public UserEntity UserEntity
         {
             get { return _userEntity; }
-            set { SetProperty(ref _userEntity, value); }
+            set { this.RaiseAndSetIfChanged(ref _userEntity, value); }
         }
 
 
@@ -60,7 +61,7 @@ namespace PocPuxThomas.ViewModels
         public ObservableCollection<CharacterEntity> Characters
         {
             get { return _characters; }
-            set { SetProperty(ref _characters, value); }
+            set { this.RaiseAndSetIfChanged(ref _characters, value); }
         }
     }
 }

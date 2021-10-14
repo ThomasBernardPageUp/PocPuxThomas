@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 using PocPuxThomas.Models.Entities;
 using Prism.Mvvm;
 using Prism.Navigation;
+using ReactiveUI;
 using Sharpnado.Tasks;
 
 namespace PocPuxThomas.ViewModels
 {
-    public class BaseViewModel : BindableBase, INavigatedAware, IInitializeAsync
+    public class BaseViewModel : ReactiveObject,  INavigatedAware, IInitializeAsync
     {
         // Yoou can add this kind of property to reuse it in all other ViewModels.
         protected INavigationService NavigationService;

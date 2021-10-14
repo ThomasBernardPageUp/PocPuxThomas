@@ -13,6 +13,7 @@ using PocPuxThomas.Repositories.Interfaces;
 using PocPuxThomas.Wrappers;
 using Prism.Commands;
 using Prism.Navigation;
+using ReactiveUI;
 using Xamarin.Forms;
 
 namespace PocPuxThomas.ViewModels
@@ -197,28 +198,28 @@ namespace PocPuxThomas.ViewModels
         public string SelectedSort
         {
             get { return _selectedSort; }
-            set { SetProperty(ref _selectedSort, value); ChangeSort(); }
+            set { this.RaiseAndSetIfChanged(ref _selectedSort, value); ChangeSort(); }
         }
 
         private List<string> _allSorts;
         public List<string> AllSorts
         {
             get { return _allSorts; }
-            set { SetProperty(ref _allSorts, value); }
+            set { this.RaiseAndSetIfChanged(ref _allSorts, value); }
         }
 
         private ObservableCollection<CharacterWrapper> _characters;
         public ObservableCollection<CharacterWrapper> Characters
         {   
             get { return _characters; }
-            set { SetProperty(ref _characters, value); }
+            set { this.RaiseAndSetIfChanged(ref _characters, value); }
         }
 
         private ObservableCollection<string> _allGenders;
         public ObservableCollection<string> AllGenders
         {
             get { return _allGenders; }
-            set { SetProperty(ref _allGenders, value); }
+            set { this.RaiseAndSetIfChanged(ref _allGenders, value); }
         }
 
 

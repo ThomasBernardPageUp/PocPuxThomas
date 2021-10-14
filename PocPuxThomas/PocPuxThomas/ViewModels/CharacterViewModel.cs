@@ -5,6 +5,7 @@ using PocPuxThomas.Models.Entities.Interfaces;
 using PocPuxThomas.Repositories.Interfaces;
 using PocPuxThomas.Wrappers;
 using Prism.Navigation;
+using ReactiveUI;
 using Xamarin.Forms;
 
 namespace PocPuxThomas.ViewModels
@@ -49,7 +50,7 @@ namespace PocPuxThomas.ViewModels
         public CharacterEntity Character
         {
             get { return _character; }
-            set { SetProperty(ref _character, value); }
+            set { this.RaiseAndSetIfChanged(ref _character, value); }
         }
     }
 }
