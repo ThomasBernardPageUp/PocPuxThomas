@@ -10,21 +10,27 @@ using System.Linq;
 using Prism.Commands;
 using PocPuxThomas.Commons;
 using ReactiveUI;
+using DynamicData;
+using System.Reactive.Linq;
 
 namespace PocPuxThomas.ViewModels
 {
     public class ProfileViewModel : BaseViewModel
     {
-        public DelegateCommand<CharacterEntity> DeleteCommand { get; set; }
-        public DelegateCommand<CharacterEntity> ViewCommand { get; set; }
-
+        public ReactiveCommand<CharacterEntity, Task> DeleteCommand { get; set; }
+        public ReactiveCommand<CharacterEntity, Task> ViewCommand { get; set; }
+        public UserEntity UserEntity { get; set; }
         private ICharacterRepository _characterRepository;
 
         ProfileViewModel(INavigationService navigationService, ICharacterRepository characterRepository):base(navigationService)
         {
+            UserEntity = App.ConnectedUser;
+
             _characterRepository = characterRepository;
-            DeleteCommand = new DelegateCommand<CharacterEntity>(async (characterEntity) => await DeleteCharacter(characterEntity));
-            ViewCommand = new DelegateCommand<CharacterEntity>(async (characterEntity) => await ViewCharacter(characterEntity));
+            DeleteCommand = ReactiveCommand.Create<CharacterEntity, Task>(async characterEntity => await DeleteCharacter(characterEntity));
+            ViewCommand = ReactiveCommand.Create<CharacterEntity, Task>(async characterEntity => await ViewCharacter(characterEntity));
+
+            _charactersCache.Connect().ObserveOn(RxApp.MainThreadScheduler).Bind(out _characters).Subscribe();
         }
 
 
@@ -32,15 +38,15 @@ namespace PocPuxThomas.ViewModels
         {
             await base.OnNavigatedToAsync(parameters);
 
-            UserEntity = App.ConnectedUser;
-            Characters = new ObservableCollection<CharacterEntity>(await _characterRepository.GetItemsAsync( (characterEntity) => characterEntity.IdCreator == App.ConnectedUser.Id ));
+            var charactersFromDatabase = await _characterRepository.GetItemsAsync((characterEntity) => characterEntity.IdCreator == App.ConnectedUser.Id);
+            _charactersCache.AddOrUpdate(charactersFromDatabase);
         }
 
         public async Task DeleteCharacter(CharacterEntity characterEntity)
         {
             characterEntity.IdCreator = 0;
             await _characterRepository.UpdateItemAsync(characterEntity);
-            Characters.Remove(characterEntity);
+            _charactersCache.Remove(characterEntity);
         }
 
         public async Task ViewCharacter(CharacterEntity characterEntity)
@@ -49,19 +55,8 @@ namespace PocPuxThomas.ViewModels
             await NavigationService.NavigateAsync(Constants.CharacterPage, parameter);
         }
 
-        private UserEntity _userEntity;
-        public UserEntity UserEntity
-        {
-            get { return _userEntity; }
-            set { this.RaiseAndSetIfChanged(ref _userEntity, value); }
-        }
-
-
-        private ObservableCollection<CharacterEntity> _characters;
-        public ObservableCollection<CharacterEntity> Characters
-        {
-            get { return _characters; }
-            set { this.RaiseAndSetIfChanged(ref _characters, value); }
-        }
+        private SourceCache<CharacterEntity, long> _charactersCache = new SourceCache<CharacterEntity, long>(c => c.Id);
+        private ReadOnlyObservableCollection<CharacterEntity> _characters;
+        public ReadOnlyObservableCollection<CharacterEntity> Characters => _characters;
     }
 }

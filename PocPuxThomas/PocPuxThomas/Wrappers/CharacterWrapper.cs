@@ -1,4 +1,5 @@
 ﻿using PocPuxThomas.Models.Entities.Interfaces;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,14 +8,12 @@ using System.Text;
 
 namespace PocPuxThomas.Wrappers
 {
-    public class CharacterWrapper : ICharacterEntity, INotifyPropertyChanged
+    public class CharacterWrapper : ReactiveObject, ICharacterEntity
     {
         public long Id { get; set; }
         public long? IdCreator { get; set; }
         public string Image { get; set; }
-        public string Species { get; set; }
         public string Gender { get; set; }
-        public string Origin { get; set; }
 
 
         public CharacterWrapper(ICharacterEntity characterEntity)
@@ -28,27 +27,26 @@ namespace PocPuxThomas.Wrappers
             Origin = characterEntity.Origin;
         }
 
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         private string _name;
         public string Name
         {
-            get { return this._name; }
+            get { return _name; }
 
-            set
-            {
-                if (value != this._name)
-                {
-                    this._name = value;
-                    NotifyPropertyChanged();
-                }
-            }
+            set { this.RaiseAndSetIfChanged(ref _name, value); }
+        }
+
+        private string _species;
+        public string Species
+        {
+            get { return _species; }
+            set { this.RaiseAndSetIfChanged(ref _species, value); }
+        }
+
+        private string _origin;
+        public string Origin
+        {
+            get { return _origin; }
+            set { this.RaiseAndSetIfChanged(ref _origin, value); }
         }
     }
 }

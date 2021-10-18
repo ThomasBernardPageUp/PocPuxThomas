@@ -49,7 +49,6 @@
     <None Remove="Sharpnado.TaskMonitor" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Commons\" />
     <Folder Include="Converters\" />
     <Folder Include="Helpers\" />
     <Folder Include="Helpers\Interfaces\" />

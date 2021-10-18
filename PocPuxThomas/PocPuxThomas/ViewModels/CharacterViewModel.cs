@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using PocPuxThomas.Models.Entities;
 using PocPuxThomas.Models.Entities.Interfaces;
@@ -12,7 +14,7 @@ namespace PocPuxThomas.ViewModels
 {
     public class CharacterViewModel: BaseViewModel
     {
-        public Command SaveCommand { get; set; }
+        public ReactiveCommand<Unit, Task> SaveCommand { get; }
 
 
         private ICharacterRepository _characterRepository;
@@ -20,7 +22,21 @@ namespace PocPuxThomas.ViewModels
         public CharacterViewModel(INavigationService navigationService, ICharacterRepository characterRepository): base(navigationService)
         {
             _characterRepository = characterRepository;
-            SaveCommand = new Command(async () => await SaveCharacter());
+
+            var canExecuteCreate = this.WhenAnyValue(vm => vm.Character.Name, vm => vm.Character.Species, vm => vm.Character.Origin)
+                .Select(query => 
+                {
+
+                        if (String.IsNullOrEmpty(query.Item1) || String.IsNullOrEmpty(query.Item2) || String.IsNullOrEmpty(query.Item3))
+                            return false;
+                        else
+                            return true;
+                    
+                    return false;
+                    
+                });
+
+            SaveCommand = ReactiveCommand.Create(SaveCharacter, canExecuteCreate);
         }
 
         protected override async Task OnNavigatedToAsync(INavigationParameters parameters)
@@ -28,10 +44,7 @@ namespace PocPuxThomas.ViewModels
             await base.OnNavigatedToAsync(parameters);
 
             if (parameters.ContainsKey("character"))
-            {
-                Character = new CharacterEntity(parameters.GetValue<ICharacterEntity>("character"));
-            }
-
+                Character = new CharacterWrapper(parameters.GetValue<ICharacterEntity>("character"));
         }
 
         public async Task SaveCharacter()
@@ -46,8 +59,8 @@ namespace PocPuxThomas.ViewModels
         }
 
 
-        private CharacterEntity _character;
-        public CharacterEntity Character
+        private CharacterWrapper _character;
+        public CharacterWrapper Character
         {
             get { return _character; }
             set { this.RaiseAndSetIfChanged(ref _character, value); }
