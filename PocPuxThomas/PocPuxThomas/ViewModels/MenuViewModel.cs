@@ -56,10 +56,11 @@ namespace PocPuxThomas.ViewModels
                 {
                     if (!String.IsNullOrEmpty(query.Item1) && !String.IsNullOrEmpty(query.Item2) && query.Item2 != "All")
                         return new Func<CharacterEntity, bool>(c => c.Name.Contains(query.Item1) && c.Gender.Equals(query.Item2));
-                    else if (!String.IsNullOrEmpty(query.Item1) && String.IsNullOrEmpty(query.Item2))
+                    else if (!String.IsNullOrEmpty(query.Item1) && (String.IsNullOrEmpty(query.Item2) || query.Item2 == "All"))
                         return new Func<CharacterEntity, bool>(c => c.Name.Contains(query.Item1));
                     else if (String.IsNullOrEmpty(query.Item1) && !String.IsNullOrEmpty(query.Item2) && query.Item2 != "All")
                         return new Func<CharacterEntity, bool>(c => c.Gender.Equals(query.Item2));
+                   
                     else
                         return new Func<CharacterEntity, bool>(c => true);
                 });
@@ -80,10 +81,6 @@ namespace PocPuxThomas.ViewModels
                     }
                     return SortExpressionComparer<CharacterEntity>.Ascending(c => c.Id);
                 }); 
-
-
-
-
 
              _allCharacterEntities.Connect().Filter(filterSearch).Sort(sortSearch).Transform(x => new CharacterWrapper(x)).ObserveOn(RxApp.MainThreadScheduler).Bind(out _characters).DisposeMany().SubscribeSafe(_puxLogger);
             _allSortsList.Connect().Bind(out _allSorts).Subscribe(); // We link the source list and the private property
