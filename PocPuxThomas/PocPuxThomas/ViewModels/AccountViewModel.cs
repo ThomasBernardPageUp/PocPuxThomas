@@ -1,27 +1,32 @@
 ﻿using System;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using PocPuxThomas.Models.Entities;
 using PocPuxThomas.Repositories.Interfaces;
 using Prism.Navigation;
+using ReactiveUI;
 using Xamarin.Forms;
 
 namespace PocPuxThomas.ViewModels
 {
     public class AccountViewModel:BaseViewModel
     {
-        #region prop
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public string PictureUrl { get; set; }
-        public Command PictureCommand { get; set; }
-        public Command FileCommand { get; set; }
-        public Command CreateCommand { get; set; }
-        #endregion
+        public ReactiveCommand<Unit, Task> CreateCommand { get; set; }
 
 
         public AccountViewModel(INavigationService navigationService, IUserRepository userRepository) : base(navigationService)
         {
-            CreateCommand = new Command(async () => await CreateAccount());
+            var canExecuteCreate = this.WhenAnyValue(vm => vm.Username, vm => vm.Password, vm => vm.PictureUrl)
+                .Select(query => 
+                {
+                    if (String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password) || String.IsNullOrEmpty(PictureUrl))
+                        return false;
+                    else
+                        return true;
+                });
+
+            CreateCommand = ReactiveCommand.Create(CreateAccount, canExecuteCreate);
             _userRepository = userRepository;
         }
 
@@ -53,5 +58,27 @@ namespace PocPuxThomas.ViewModels
         }
 
         private IUserRepository _userRepository;
+
+        private string _username;
+        public string Username
+        {
+            get { return _username; }
+            set { this.RaiseAndSetIfChanged(ref _username, value); }
+        }
+
+        private string _password;
+        public string Password
+        {
+            get { return _password; }
+            set { this.RaiseAndSetIfChanged(ref _password, value); }
+        }
+
+        private string _pictureUrl;
+        public string PictureUrl
+        {
+            get { return _pictureUrl; }
+            set { this.RaiseAndSetIfChanged(ref _pictureUrl, value); }
+        }
+
     }
 }

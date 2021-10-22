@@ -17,10 +17,10 @@
 
 
 
-        <SearchBar Text="{Binding SearchedCharacterName}" SearchCommand="{Binding SearchCommand}" Placeholder="Search one character"></SearchBar>
+        <SearchBar Text="{Binding SearchedCharacterName}" Placeholder="Search one character"></SearchBar>
             <StackLayout Orientation="Horizontal" BackgroundColor="AliceBlue">
+                <Label Text="Select one gender :" VerticalOptions="Center" Margin="10, 0"></Label>
                 <Picker SelectedItem="{Binding SelectedGender}" Title="Choose one sex" HorizontalOptions="FillAndExpand" ItemsSource="{Binding AllGenders}"></Picker>
-                <Button Command="{Binding SearchCommand}" Text="Search" BackgroundColor="DodgerBlue" TextColor="White" Padding="30, 0"></Button>
             </StackLayout>
 
         <StackLayout Orientation="Horizontal">

@@ -3,47 +3,89 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DynamicData;
+using DynamicData.Binding;
+using PageUpX.Core.Log;
 using PocPuxThomas.Commons;
 using PocPuxThomas.Helpers.Interfaces;
 using PocPuxThomas.Models.DTO.Down;
 using PocPuxThomas.Models.Entities;
+using PocPuxThomas.Models.Entities.Interfaces;
 using PocPuxThomas.Repositories.Interfaces;
 using PocPuxThomas.Wrappers;
 using Prism.Commands;
 using Prism.Navigation;
+using ReactiveUI;
 using Xamarin.Forms;
 
 namespace PocPuxThomas.ViewModels
 {
     public class MenuViewModel:BaseViewModel
     {
-
-        public string SearchedCharacterName { get; set; }
-        public string SelectedGender { get; set; }
-        public DelegateCommand<CharacterWrapper> CharacterTappedCommand { get; set; }
-        public Command SearchCommand { get; set; }
-        public Command ProfileCommand { get; set; }
-        public Command ResetCharactersCommand { get; set; }
-        public DelegateCommand<CharacterWrapper> DeleteCharacterCommand { get; set; }
+        public ReactiveCommand<CharacterWrapper, Task> CharacterTappedCommand { get; }
+        public ReactiveCommand<Unit, Task> ResetCharactersCommand { get; }
+        public ReactiveCommand<Unit, Task> ProfileCommand { get; }
+        public ReactiveCommand<CharacterWrapper, Task> DeleteCharacterCommand { get; set; }
 
         private IDataTransferHelper _dataTransferHelper;
-        private List<CharacterEntity> _allCharacterEntities;
         private ICharacterRepository _characterRepository;
+        private IPuxLogger _puxLogger;
 
 
-        public MenuViewModel(INavigationService navigationService, IDataTransferHelper dataTransferHelper, ICharacterRepository characterRepository) : base(navigationService)
+        public MenuViewModel(INavigationService navigationService, IDataTransferHelper dataTransferHelper, ICharacterRepository characterRepository, IPuxLogger puxLogger) : base(navigationService)
         {
+            CharacterTappedCommand = ReactiveCommand.Create<CharacterWrapper, Task>(async characterWrapper => await ShowCharacter(characterWrapper));
+            ResetCharactersCommand = ReactiveCommand.Create(ResetCharacters);
+            ProfileCommand = ReactiveCommand.Create(ProfilePage);
+            DeleteCharacterCommand = ReactiveCommand.Create<CharacterWrapper, Task>(async characterWrapper => await DeleteCharacter(characterWrapper));
+
+            _puxLogger = puxLogger;
             _dataTransferHelper = dataTransferHelper;
             _characterRepository = characterRepository;
-            SearchCommand = new Command(async () => await SearchCharacter());
-            CharacterTappedCommand = new DelegateCommand<CharacterWrapper>(async (characterWrapper) => await ShowCharacter(characterWrapper));
-            ProfileCommand = new Command(async () => await ProfilePage());
-            ResetCharactersCommand = new Command(async () => await ResetCharacters());
-            DeleteCharacterCommand = new DelegateCommand<CharacterWrapper>(async (characterWrapper) => await DeleteCharacter(characterWrapper));
 
-            AllSorts = new List<string>() {"Any", "Gender", "Name", "Origin" };
+            _allSortsList.AddRange(new List<string>() { "Any", "Gender", "Name", "Origin" });
+
+            IObservable<Func<ICharacterEntity, bool>> filterSearch = 
+                
+                this.WhenAnyValue(vm => vm.SearchedCharacterName, vm => vm.SelectedGender) // When SearchedCharacterName's or SelectedGender's value change 
+                .Throttle(TimeSpan.FromSeconds(1)) // And the value don't change from 1 sec
+                .Select(query => // We execute (query is value of params)
+                {
+                    if (!String.IsNullOrEmpty(query.Item1) && !String.IsNullOrEmpty(query.Item2) && query.Item2 != "All")
+                        return new Func<ICharacterEntity, bool>(c => c.Name.Contains(query.Item1) && c.Gender.Equals(query.Item2));
+                    else if (!String.IsNullOrEmpty(query.Item1) && (String.IsNullOrEmpty(query.Item2) || query.Item2 == "All"))
+                        return new Func<ICharacterEntity, bool>(c => c.Name.Contains(query.Item1));
+                    else if (String.IsNullOrEmpty(query.Item1) && !String.IsNullOrEmpty(query.Item2) && query.Item2 != "All")
+                        return new Func<ICharacterEntity, bool>(c => c.Gender.Equals(query.Item2));
+                   
+                    else
+                        return new Func<ICharacterEntity, bool>(c => true);
+                });
+
+            IObservable<SortExpressionComparer<ICharacterEntity>> sortSearch = this.WhenAnyValue(vm => vm.SelectedSort) // When the value of SelectedSort change 
+                .Select(query => // We execute
+                {
+                    switch (query)
+                    {
+                        case "Gender":
+                            return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Gender);
+                        case "Name":
+                            return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Name);
+                        case "Origin":
+                            return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Origin);
+                        case "Any":
+                            return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Id);
+                    }
+                    return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Id);
+                }); 
+
+             _allCharacterEntities.Connect().Transform(x => new CharacterWrapper(x)).Filter(filterSearch).Sort(sortSearch).Bind(out _characters).Subscribe();
+            _allSortsList.Connect().Bind(out _allSorts).Subscribe(); // We link the source list and the private property
+            _allGendersSource.Connect().Bind(out _allGenders).Subscribe();
         }
 
 
@@ -61,18 +103,13 @@ namespace PocPuxThomas.ViewModels
                     int editedCharacterId = parameters.GetValue<int>("characterId");
 
                     CharacterEntity editedCharacter = await _characterRepository.GetItemAsync(editedCharacterId);
-                    Characters.FirstOrDefault(character => character.Id == editedCharacterId).Name = editedCharacter.Name; // Replace the name
-
-                    int index = _allCharacterEntities.IndexOf(_allCharacterEntities.FirstOrDefault(character => character.Id == editedCharacterId));
-                    _allCharacterEntities.RemoveAt(index);
-                    _allCharacterEntities.Insert(index, editedCharacter);
-
+                    int index = _allCharacterEntities.Items.IndexOf(_allCharacterEntities.Items.FirstOrDefault(c => c.Id == editedCharacterId));
+                    _allCharacterEntities.Remove(index);
+                    _allCharacterEntities.AddOrUpdate(editedCharacter);
                 }
             }
             else // If we come from a NavigateTo
-            {
                 await LoadCharacters(); // Load all characters
-            }
         }
 
 
@@ -81,34 +118,30 @@ namespace PocPuxThomas.ViewModels
             if(await App.Current.MainPage.DisplayAlert("Warning", "Do you want delete this character ?", "Yes", "No"))
             {
                 await _characterRepository.DeleteItemAsync(new CharacterEntity(characterWrapper)); // Delete it in the dataBase
-                Characters.Remove(characterWrapper); // Delete it in the current list of characters
-                _allCharacterEntities.Remove(_allCharacterEntities.FirstOrDefault(character => character.Id == characterWrapper.Id)); // Delete it in the list of all characters
+                _allCharacterEntities.Remove(_allCharacterEntities.Items.FirstOrDefault(character => character.Id == characterWrapper.Id)); // Delete it in the list of all characters
             }
         }
 
         public async Task ResetCharacters()
         {
-            bool reply = await App.Current.MainPage.DisplayAlert("Warning", "Do you wan't to delete all characters ?", "Yes", "No");
-
-            if (reply)
+            if (await App.Current.MainPage.DisplayAlert("Warning", "Do you wan't to delete all characters ?", "Yes", "No"))
             {
                 await _characterRepository.DropAsync(true);
                 await LoadCharacters();
             }
-
         }
 
 
         public async Task LoadCharacters()
         {
-            _allCharacterEntities = new List<CharacterEntity>();
+            _allCharacterEntities.Remove(_allCharacterEntities.Items);
 
             var charactersFromDatabase = await _characterRepository.GetItemsAsync();
 
             // If characters are already save in the database
             if (charactersFromDatabase?.Any() ?? false)
             {
-                _allCharacterEntities = charactersFromDatabase.ToList();
+                _allCharacterEntities.AddOrUpdate(charactersFromDatabase);
             }
             else
             {
@@ -120,42 +153,18 @@ namespace PocPuxThomas.ViewModels
                     var result = await _dataTransferHelper.SendClientAsync<CharactersDownDTO>(baseUrl + i, HttpMethod.Get);
 
                     if (result.IsSuccess)
-                    {
-                        _allCharacterEntities.AddRange(Converters.CharacterDownToCharacterEntity.ConvertCharacterDownToCharacterEntity(result.Result.Results));
-                    }
+                        _allCharacterEntities.AddOrUpdate(Converters.CharacterDownToCharacterEntity.ConvertCharacterDownToCharacterEntity(result.Result.Results));
                     else
-                    {
                         Console.WriteLine("call error");
-                    }
                 }
 
-                await _characterRepository.InsertOrReplaceItemsAsync(_allCharacterEntities);
+                await _characterRepository.InsertItemsAsync(_allCharacterEntities.Items);
             }
 
             // Get all differents genders
-            AllGenders = new ObservableCollection<string>(_allCharacterEntities.Select(characterEntity => characterEntity.Gender).Distinct().ToList());
-            AllGenders.Insert(0, "All");
-            Characters = new ObservableCollection<CharacterWrapper>(_allCharacterEntities.Select(characterEntity => new CharacterWrapper(characterEntity)));
-        }
-
-        public async Task SearchCharacter()
-        {
-            // 1) Reset the list
-            Characters = new ObservableCollection<CharacterWrapper>(_allCharacterEntities.Select(characterEntity => new CharacterWrapper(characterEntity)));
-
-
-            // 2) We filter with the name
-            if (!string.IsNullOrEmpty(SearchedCharacterName))
-            {
-                Characters = new ObservableCollection<CharacterWrapper>(Characters.Where(character => character.Name.Contains(SearchedCharacterName)).ToList());
-            }
-
-
-            // We filter with the gender
-            if (!string.IsNullOrEmpty(SelectedGender) && SelectedGender != "All")
-            {
-                Characters = new ObservableCollection<CharacterWrapper>(Characters.Where(character => character.Gender.Contains(SelectedGender)).ToList());
-            }
+            _allGendersSource.RemoveMany(_allGendersSource.Items);
+            _allGendersSource.AddRange(_allCharacterEntities.Items.Select(characterEntity => characterEntity.Gender).Distinct().ToList());
+            _allGendersSource.Insert(0, "All");
         }
 
 
@@ -170,57 +179,37 @@ namespace PocPuxThomas.ViewModels
             await NavigationService.NavigateAsync(Constants.ProfilePage);
         }
 
-        public async Task ChangeSort()
+        private string _searchedCharacterName = "";
+        public string SearchedCharacterName
         {
-            List<CharacterWrapper> characterSorted = new List<CharacterWrapper>();
-
-            switch (SelectedSort)
-            {
-                case "Any":
-                    characterSorted = Characters.OrderBy(character => character.Id).ToList();
-                    break;
-                case "Gender":
-                    characterSorted = Characters.OrderBy(character => character.Gender).ToList();
-                    break;
-                case "Name":
-                    characterSorted = Characters.OrderBy(character => character.Name).ToList();
-                    break;
-                case "Origin":
-                    characterSorted = Characters.OrderBy(character => character.Origin).ToList();
-                    break;
-            }
-
-            Characters = new ObservableCollection<CharacterWrapper>(characterSorted);
+            get => _searchedCharacterName;
+            set { this.RaiseAndSetIfChanged(ref _searchedCharacterName, value); }
         }
 
-        private string _selectedSort;
+        private string _selectedGender = "";
+        public string SelectedGender
+        {
+            get => _selectedGender;
+            set { this.RaiseAndSetIfChanged(ref _selectedGender, value); }
+        }
+
+        private string _selectedSort = "";
         public string SelectedSort
         {
             get { return _selectedSort; }
-            set { SetProperty(ref _selectedSort, value); ChangeSort(); }
+            set { this.RaiseAndSetIfChanged(ref _selectedSort, value);}
         }
 
-        private List<string> _allSorts;
-        public List<string> AllSorts
-        {
-            get { return _allSorts; }
-            set { SetProperty(ref _allSorts, value); }
-        }
+        private SourceCache<CharacterEntity, long> _allCharacterEntities = new SourceCache<CharacterEntity, long>(c => c.Id);
+        private ReadOnlyObservableCollection<CharacterWrapper> _characters;
+        public ReadOnlyObservableCollection<CharacterWrapper> Characters => _characters;
 
-        private ObservableCollection<CharacterWrapper> _characters;
-        public ObservableCollection<CharacterWrapper> Characters
-        {   
-            get { return _characters; }
-            set { SetProperty(ref _characters, value); }
-        }
+        private readonly SourceList<string> _allSortsList = new SourceList<string>(); // The source List
+        private readonly ReadOnlyObservableCollection<string> _allSorts; // The private property
+        public ReadOnlyObservableCollection<string> AllSorts => _allSorts; // The public property
 
-        private ObservableCollection<string> _allGenders;
-        public ObservableCollection<string> AllGenders
-        {
-            get { return _allGenders; }
-            set { SetProperty(ref _allGenders, value); }
-        }
-
-
+        private SourceList<string> _allGendersSource = new SourceList<string>();
+        private readonly ReadOnlyObservableCollection<string> _allGenders;
+        public ReadOnlyObservableCollection<string> AllGenders => _allGenders;
     }
 }
