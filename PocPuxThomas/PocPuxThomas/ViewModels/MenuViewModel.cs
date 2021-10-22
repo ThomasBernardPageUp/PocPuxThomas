@@ -14,6 +14,7 @@ using PocPuxThomas.Commons;
 using PocPuxThomas.Helpers.Interfaces;
 using PocPuxThomas.Models.DTO.Down;
 using PocPuxThomas.Models.Entities;
+using PocPuxThomas.Models.Entities.Interfaces;
 using PocPuxThomas.Repositories.Interfaces;
 using PocPuxThomas.Wrappers;
 using Prism.Commands;
@@ -48,41 +49,41 @@ namespace PocPuxThomas.ViewModels
 
             _allSortsList.AddRange(new List<string>() { "Any", "Gender", "Name", "Origin" });
 
-            IObservable<Func<CharacterEntity, bool>> filterSearch = 
+            IObservable<Func<ICharacterEntity, bool>> filterSearch = 
                 
                 this.WhenAnyValue(vm => vm.SearchedCharacterName, vm => vm.SelectedGender) // When SearchedCharacterName's or SelectedGender's value change 
                 .Throttle(TimeSpan.FromSeconds(1)) // And the value don't change from 1 sec
                 .Select(query => // We execute (query is value of params)
                 {
                     if (!String.IsNullOrEmpty(query.Item1) && !String.IsNullOrEmpty(query.Item2) && query.Item2 != "All")
-                        return new Func<CharacterEntity, bool>(c => c.Name.Contains(query.Item1) && c.Gender.Equals(query.Item2));
+                        return new Func<ICharacterEntity, bool>(c => c.Name.Contains(query.Item1) && c.Gender.Equals(query.Item2));
                     else if (!String.IsNullOrEmpty(query.Item1) && (String.IsNullOrEmpty(query.Item2) || query.Item2 == "All"))
-                        return new Func<CharacterEntity, bool>(c => c.Name.Contains(query.Item1));
+                        return new Func<ICharacterEntity, bool>(c => c.Name.Contains(query.Item1));
                     else if (String.IsNullOrEmpty(query.Item1) && !String.IsNullOrEmpty(query.Item2) && query.Item2 != "All")
-                        return new Func<CharacterEntity, bool>(c => c.Gender.Equals(query.Item2));
+                        return new Func<ICharacterEntity, bool>(c => c.Gender.Equals(query.Item2));
                    
                     else
-                        return new Func<CharacterEntity, bool>(c => true);
+                        return new Func<ICharacterEntity, bool>(c => true);
                 });
 
-            IObservable<SortExpressionComparer<CharacterEntity>> sortSearch = this.WhenAnyValue(vm => vm.SelectedSort) // When the value of SelectedSort change 
+            IObservable<SortExpressionComparer<ICharacterEntity>> sortSearch = this.WhenAnyValue(vm => vm.SelectedSort) // When the value of SelectedSort change 
                 .Select(query => // We execute
                 {
                     switch (query)
                     {
                         case "Gender":
-                            return SortExpressionComparer<CharacterEntity>.Ascending(c => c.Gender);
+                            return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Gender);
                         case "Name":
-                            return SortExpressionComparer<CharacterEntity>.Ascending(c => c.Name);
+                            return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Name);
                         case "Origin":
-                            return SortExpressionComparer<CharacterEntity>.Ascending(c => c.Origin);
+                            return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Origin);
                         case "Any":
-                            return SortExpressionComparer<CharacterEntity>.Ascending(c => c.Id);
+                            return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Id);
                     }
-                    return SortExpressionComparer<CharacterEntity>.Ascending(c => c.Id);
+                    return SortExpressionComparer<ICharacterEntity>.Ascending(c => c.Id);
                 }); 
 
-             _allCharacterEntities.Connect().Filter(filterSearch).Sort(sortSearch).Transform(x => new CharacterWrapper(x)).ObserveOn(RxApp.MainThreadScheduler).Bind(out _characters).DisposeMany().SubscribeSafe(_puxLogger);
+             _allCharacterEntities.Connect().Transform(x => new CharacterWrapper(x)).Filter(filterSearch).Sort(sortSearch).Bind(out _characters).Subscribe();
             _allSortsList.Connect().Bind(out _allSorts).Subscribe(); // We link the source list and the private property
             _allGendersSource.Connect().Bind(out _allGenders).Subscribe();
         }
@@ -103,8 +104,8 @@ namespace PocPuxThomas.ViewModels
 
                     CharacterEntity editedCharacter = await _characterRepository.GetItemAsync(editedCharacterId);
                     int index = _allCharacterEntities.Items.IndexOf(_allCharacterEntities.Items.FirstOrDefault(c => c.Id == editedCharacterId));
-                    _allCharacterEntities.RemoveAt(index);
-                    _allCharacterEntities.Insert(index, editedCharacter);
+                    _allCharacterEntities.Remove(index);
+                    _allCharacterEntities.AddOrUpdate(editedCharacter);
                 }
             }
             else // If we come from a NavigateTo
@@ -133,14 +134,14 @@ namespace PocPuxThomas.ViewModels
 
         public async Task LoadCharacters()
         {
-            _allCharacterEntities.RemoveMany(_allCharacterEntities.Items);
+            _allCharacterEntities.Remove(_allCharacterEntities.Items);
 
             var charactersFromDatabase = await _characterRepository.GetItemsAsync();
 
             // If characters are already save in the database
             if (charactersFromDatabase?.Any() ?? false)
             {
-                _allCharacterEntities.AddRange(charactersFromDatabase);
+                _allCharacterEntities.AddOrUpdate(charactersFromDatabase);
             }
             else
             {
@@ -152,7 +153,7 @@ namespace PocPuxThomas.ViewModels
                     var result = await _dataTransferHelper.SendClientAsync<CharactersDownDTO>(baseUrl + i, HttpMethod.Get);
 
                     if (result.IsSuccess)
-                        _allCharacterEntities.AddRange(Converters.CharacterDownToCharacterEntity.ConvertCharacterDownToCharacterEntity(result.Result.Results));
+                        _allCharacterEntities.AddOrUpdate(Converters.CharacterDownToCharacterEntity.ConvertCharacterDownToCharacterEntity(result.Result.Results));
                     else
                         Console.WriteLine("call error");
                 }
@@ -199,7 +200,7 @@ namespace PocPuxThomas.ViewModels
             set { this.RaiseAndSetIfChanged(ref _selectedSort, value);}
         }
 
-        private SourceList<CharacterEntity> _allCharacterEntities = new SourceList<CharacterEntity>();
+        private SourceCache<CharacterEntity, long> _allCharacterEntities = new SourceCache<CharacterEntity, long>(c => c.Id);
         private ReadOnlyObservableCollection<CharacterWrapper> _characters;
         public ReadOnlyObservableCollection<CharacterWrapper> Characters => _characters;
 

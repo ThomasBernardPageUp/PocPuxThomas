@@ -1,10 +1,5 @@
 ﻿using PocPuxThomas.Models.Entities.Interfaces;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace PocPuxThomas.Wrappers
 {
