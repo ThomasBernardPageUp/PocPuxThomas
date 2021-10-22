@@ -10,6 +10,10 @@ using ReactiveUI;
 using System.Linq;
 using Xamarin.Forms;
 using System.Reactive.Linq;
+using ZXing.Mobile;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using PocPuxThomas.Models.DTO.Down;
 
 namespace PocPuxThomas.ViewModels
 {
@@ -17,11 +21,12 @@ namespace PocPuxThomas.ViewModels
     {
         public ReactiveCommand<Unit, Task> LoginCommand { get; }
         public ReactiveCommand<Unit, Task> CreateAccountCommand { get; set; }
+        public ReactiveCommand<Unit, Task> ScanCommand { get; set; }
 
 
         public LoginViewModel(INavigationService navigationService, IUserRepository userRepository) :base(navigationService)
         {
-            
+            _mobileBarcode = new MobileBarcodeScanner();
             _userRepository = userRepository;
 
             var canExecuteLogin = this.WhenAnyValue(vm => vm.Password, vm => vm.Username)
@@ -35,12 +40,32 @@ namespace PocPuxThomas.ViewModels
 
             LoginCommand = ReactiveCommand.Create(CheckLogin, canExecuteLogin);
             CreateAccountCommand = ReactiveCommand.Create(AccountPage);
+            ScanCommand = ReactiveCommand.Create(Scan);
 
         }
 
         protected override async Task OnNavigatedToAsync(INavigationParameters parameters)
         {
             await base.OnNavigatedToAsync(parameters);
+        }
+
+        public async Task Scan()
+        {
+            var result = await _mobileBarcode.Scan();
+
+            try
+            {
+                var deserializedResult = JsonConvert.DeserializeObject<UserQrCodeDownDTO>(result.Text);
+                Username = deserializedResult.Username;
+                Password = deserializedResult.Password;
+
+                await CheckLogin();
+            }
+            catch(Exception ex)
+            {
+                await App.Current.MainPage.DisplayAlert("Error", "Error during scaning your QR code, please retry", "Ok");
+                Console.WriteLine(ex);
+            }
         }
 
 
@@ -66,6 +91,7 @@ namespace PocPuxThomas.ViewModels
         }
 
         private IUserRepository _userRepository;
+        private MobileBarcodeScanner _mobileBarcode;
 
         private string _username;
         public string Username

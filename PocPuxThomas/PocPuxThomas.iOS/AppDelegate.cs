@@ -26,6 +26,7 @@ namespace PocPuxThomas.iOS
         {
             SQLitePCL.Batteries_V2.Init();
             global::Xamarin.Forms.Forms.Init();
+            ZXing.Net.Mobile.Forms.iOS.Platform.Init();
             LoadApplication(new App(new iOSInitializer()));
 
             return base.FinishedLaunching(app, options);
