@@ -12,6 +12,10 @@ using PocPuxThomas.Commons;
 using ReactiveUI;
 using DynamicData;
 using System.Reactive.Linq;
+using System.Reactive;
+using PocPuxThomas.Models.DTO.Down;
+using Newtonsoft.Json;
+using Xamarin.Forms;
 
 namespace PocPuxThomas.ViewModels
 {
@@ -19,6 +23,7 @@ namespace PocPuxThomas.ViewModels
     {
         public ReactiveCommand<CharacterEntity, Task> DeleteCommand { get; set; }
         public ReactiveCommand<CharacterEntity, Task> ViewCommand { get; set; }
+        public ReactiveCommand<Unit, Task> GenerateQrCodeCommand { get; set; }
         public UserEntity UserEntity { get; set; }
         private ICharacterRepository _characterRepository;
 
@@ -29,10 +34,16 @@ namespace PocPuxThomas.ViewModels
             _characterRepository = characterRepository;
             DeleteCommand = ReactiveCommand.Create<CharacterEntity, Task>(async characterEntity => await DeleteCharacter(characterEntity));
             ViewCommand = ReactiveCommand.Create<CharacterEntity, Task>(async characterEntity => await ViewCharacter(characterEntity));
+            GenerateQrCodeCommand = ReactiveCommand.Create<Unit, Task>(async c => await GenerateQrCode());
 
             _charactersCache.Connect().ObserveOn(RxApp.MainThreadScheduler).Bind(out _characters).Subscribe();
         }
 
+        public async Task GenerateQrCode()
+        {
+            UserQrCodeDownDTO userQrCodeDownDTO = new UserQrCodeDownDTO() { Password = UserEntity.Password, Username = UserEntity.Username };
+            QrCodeValue = JsonConvert.SerializeObject(userQrCodeDownDTO);
+        }
 
         protected override async Task OnNavigatedToAsync(INavigationParameters parameters)
         {
@@ -53,6 +64,13 @@ namespace PocPuxThomas.ViewModels
         {
             var parameter = new NavigationParameters { { "character", characterEntity } };
             await NavigationService.NavigateAsync(Constants.CharacterPage, parameter);
+        }
+
+        private string _qrCodeValue = "0";
+        public string QrCodeValue
+        {
+            get { return _qrCodeValue; }
+            set { this.RaiseAndSetIfChanged(ref _qrCodeValue, value); }
         }
 
         private SourceCache<CharacterEntity, long> _charactersCache = new SourceCache<CharacterEntity, long>(c => c.Id);

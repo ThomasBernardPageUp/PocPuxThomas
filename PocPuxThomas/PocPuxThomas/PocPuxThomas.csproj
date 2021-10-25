@@ -50,7 +50,6 @@
     <None Remove="Sharpnado.TaskMonitor" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Converters\" />
     <Folder Include="Helpers\" />
     <Folder Include="Helpers\Interfaces\" />
   </ItemGroup>

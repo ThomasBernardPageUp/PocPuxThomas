@@ -1,8 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:zxing="clr-namespace:ZXing.Net.Mobile.Forms;assembly=ZXing.Net.Mobile.Forms"
+             xmlns:zxingcommon="clr-namespace:ZXing.Common;assembly=zxing.portable"
+             xmlns:converters="clr-namespace:PocPuxThomas.Converters"
              x:Class="PocPuxThomas.Views.ProfilePage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:QrCodeValueToBool x:Key="QrCodeValueToBool" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
     <StackLayout Margin="10, 20">
+
+       
 
         <Grid Margin="25">
             <Grid.ColumnDefinitions>
@@ -23,9 +35,14 @@
                 <Entry Text="{Binding UserEntity.Password}" HorizontalOptions="FillAndExpand" IsEnabled="False"></Entry>
             </StackLayout>
 
-            <Image Margin="5, 0" Grid.RowSpan="3" Grid.Column="1" Source="{Binding UserEntity.Picture}" BackgroundColor="Black"></Image>
+            <Image Margin="5, 0" Grid.RowSpan="2" Grid.Column="1" Source="{Binding UserEntity.Picture}" BackgroundColor="Black"></Image>
 
         </Grid>
+
+        <Button Command="{Binding GenerateQrCodeCommand}" Text="Generate my QR Code" HorizontalOptions="FillAndExpand" BackgroundColor="DodgerBlue" TextColor="White"></Button>
+        <!--<zxing:ZXingBarcodeImageView BarcodeValue="{Binding QrCodeValue}" WidthRequest="200" HeightRequest="200" IsVisible="{Binding QrCodeValue, Converter={x:StaticResource Key=QrCodeValueToBool}}">
+
+        </zxing:ZXingBarcodeImageView>-->
 
 
         <Label Text="All saved characters :" FontSize="30" HorizontalOptions="Center"></Label>
